@@ -1,0 +1,95 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Oct  1 09:40:39 2019
+
+@author: perrot
+"""
+
+import glob, collections
+import pandas as pd
+
+
+liste_id =[]
+liste_username = []
+liste_thread_type = []
+liste_course = []
+out = []
+
+#sorted(glob.glob)
+files = sorted(glob.glob("/home/perrot/Documents/Projet4/data_course-v1_CNAM+01032+session01/*"))
+
+for file in files:
+    with open(file,'r') as f:
+        s = f.read().strip()
+        l = eval(s)
+        
+        try:
+            id = l["content"]["id"]
+            username = l["content"]["username"]
+            thread_type = l["content"]["thread_type"]
+            course = l["content"]["courseware_title"]
+        except:
+            pass
+#            username = "non"
+        liste_id.append(id)
+        liste_username.append(username)
+        liste_thread_type.append(thread_type)
+        liste_course.append(course)
+        
+#https://www.geeksforgeeks.org/create-a-pandas-dataframe-from-lists/
+#        merged by using list(zip()) function.-------
+df = pd.DataFrame(list(zip(liste_id,liste_username,liste_thread_type,liste_course)),
+columns =['id', 'username','thread_type','course'])
+
+#---------------Comptage---------------------------------------------
+#https://dfrieds.com/data-analysis/value-counts-python-pandas
+
+len(df)
+len(df.index)
+len(df.columns)
+
+df['id'].value_counts()
+df['username'].value_counts()
+df['thread_type'].value_counts()
+df['course'].value_counts()
+
+#--------------------------
+#https://www.codementor.io/tips/3847022612/counting-number-of-occurrences-on-pandas-dataframe-columns
+melted_data = pd.melt(df, value_vars=['id','username','thread_type','course'], var_name='values', value_name='reference')
+melted_data.groupby(by=['values', 'reference'])['reference'].count()
+#print(melted_data)
+
+#-------------count par groupe------------
+
+cours_count = df.groupby(by=['course'])
+course_count = cours_count.count()
+print(course_count)
+
+usern_count = df.groupby(by=['username'])
+usern_count_count = usern_count.count()
+print(usern_count_count)
+
+
+
+#--------------graphs--crosstab-------------------------------
+
+tab = pd.crosstab(index=df['course'], columns=df['thread_type'],margins=True).sort_values('All',ascending=False)
+tab = tab.drop('All',axis=0)
+tab = tab.drop('All',axis=1)
+tab.plot(kind='barh')
+plt.show()
+
+tab1 = pd.crosstab(index=df['username'], columns=df['thread_type'],margins=True).sort_values('All',ascending=False)
+print(tab)
+tab1 = tab1.drop('All',axis=0)
+tab1 = tab1.drop('All',axis=1)
+tab1[:20].plot(kind='bar', figsize=(8, 10), zorder=2, width=1.0)
+plt.show()
+
+tab1 = pd.crosstab(index=df['username'], columns=df['thread_type'],margins=True).sort_values('All',ascending=False)
+print(tab)
+tab1 = tab1.drop('All',axis=0)
+tab1 = tab1.drop('All',axis=1)
+tab1[:20].plot(kind='bar', figsize=(8, 10), width=1.0, stacked=True)
+plt.show()
