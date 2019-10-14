@@ -1,0 +1,115 @@
+library(mongolite)
+library(jsonlite)
+library(rjson)
+
+#-------CONNECTION------
+col_mooc <- mongo(collection = 'TestMongo', db = 'MOOC_GRP_AFS',  url = "mongodb://name:pw@127.0.0.1:27018/Datalab",verbose = FALSE)
+col_mooc$count()
+
+#-------DATAFRAME COUNT-----
+df <- col_mooc$find()
+col_mooc$count()
+col_mooc$find()
+str(df)
+
+
+#-------FIELDS-------
+
+col_id <- col_mooc$find(fields ='{"_id":1}', sort='{"_id":1}')
+col_cid <-col_mooc$find(fields ='{"content.course_id":1}', sort='{"content.course_id":1}')
+col_ctle <-col_mooc$find(fields ='{"content.courseware_title":1}', sort='{"courseware_title":1}')
+col_uid <-col_mooc$find(fields ='{"content.user_id":1}', sort='{"content.user_id":1}')
+col_un <-col_mooc$find(fields ='{"content.username":1}', sort='{"content.username":1}')
+col_datec <-col_mooc$find(fields ='{"content.created_at":1}', sort='{"content.created_at":1}')
+col_thtype <-col_mooc$find(fields ='{"content.type":1}', sort='{"content.type":1}')
+col_type <-col_mooc$find(fields ='{"content.children.type":1}', sort='{"content.children.type":1}')
+col_thid <-col_mooc$find(fields ='{"content.username":1,"content.thread_id":1}', sort='{"content.username":1}')
+col_thcid <-col_mooc$find(fields ='{"content.username":1,"content.children.thread_id":1}', sort='{"content.username":1}')
+col_body <-col_mooc$find(fields ='{"content.body":1}', sort='{"content.body":1}')
+
+#------WORKING QUERIES-----------
+col_mooc$find(query='{"_users": "Linkon "}')
+col_mooc$find(query='{"_users": "Linkon "}',fields='{"_users":1, "content.course_id":1}')
+col_mooc$find(query='{"_users": "Linkon "}',fields='{"_users":1, "content.course_id":1,"content.username":1}')
+col_un <- col_mooc$find(fields ='{"_users":1,"content.username":1}')
+col_un <- col_mooc$find(fields ='{"content.username":1}')
+col_mooc$find(fields ='{"_users":1, "content.course_id":1,"content.username":1}')
+col_un <- col_mooc$find(fields ='{"content.username":1}', sort='{"content.username":1}')
+print(col_un)
+col_unth <- col_mooc$find(fields ='{"content.username":1,"content.children.thread_id":1}', sort='{"content.thread_id":1}')
+print(col_unth)
+col_unplus <- col_mooc$find(fields ='{"content.username":1,"content.children.thread_id":1}', sort='{"content.thread_id":1}')
+print(col_unplus)
+col_mooc$find(query='{"_users": "Linkon "}',fields='{"_id":0, "content.course_id":1, "content.thread_id":1}')
+
+#---------AGGREGATE---------
+#--------Group user name------
+
+col_mooc$aggregate('[
+                  {"$group" : {"_id":"$content.username", "count":{"$sum":1}}}
+                  ]')
+
+#---------SORT-------------
+#sort() method, 1(ascending order)  or -1(descending order)
+
+sortuser <- col_mooc$aggregate('[
+                   {"$group" : {"_id":"$content.username", "count":{"$sum":1}}},
+                   {"$sort":{"count":-1}}
+                   ]')
+
+sortid <- col_mooc$aggregate('[
+                   {"$group" : {"_id":"$content.username", "count":{"$sum":1}}},
+                   {"$sort" : {"_id" : 1}}
+                   ]')
+
+#-----------Other groups-------------------------
+useth <- col_mooc$aggregate('[
+    {"$group" : {"_id":{"user":"$content.username", "thread":"$content.thread_id"},"count":{"$sum":1}}}
+    ]')
+print(useth)
+
+thuse <- col_mooc$aggregate('[
+    {"$group" : {"_id":{"thread":"$content.thread_id","user":"$content.username"},"count":{"$sum":1}}}
+    ]')
+print(thuse)
+
+thcth <- col_mooc$aggregate('[
+    {"$group" : {"thread_id":{"cthread":"$content.children.thread_id"},"count":{"$sum":1}}}
+    ]')
+print(thcth)
+
+#--------TIME--------------------------------
+
+time <-col_mooc$aggregate('[{"$project": {"StringToDate":{"$dateFromString": {"dateString": "$content.created_at"}}}}]')
+timeq1 <- col_mooc$find(query='{"$and": [{"content.created_at": {"$gt":"2018-06-15T00:00:00Z"} }, {"content.created_at": {"$lt":"2018-06-19T00:00:00Z"} }]}',
+                        fields='{"content.created_at":1}',sort='{"content.created_at":1}')
+
+#----------ITERATE----------------------------
+it <- col_mooc$iterate(
+  query='{"$and": [
+    {"content.created_at": {"$gt":"2018-069-15"} }, {"content.created_at": {"$lt":"2018-069-15"} }
+  ]}',
+  fields='{"content.created_at":1}',
+  sort='{"content.created_at":1}'
+)
+print(it)
+
+
+
+#--------NESTED-----------------------------
+
+col_un <-col_mooc$find(fields ='{"content.username":1}', sort='{"content.username":1}')
+col_un1 <-col_mooc$find(fields ='{"content.username":1,"content.children.username":1}')
+
+
+#------Dataframequeries-------------------
+dfun <- df$content$username
+str(df$content$children)
+dfun2 <- df$content$children$username
+dfuid <- df$content$user_id
+dfct <- df$content$course_id
+dfbdy <- df$content$body
+dfqu <- df$content$type
+dfresp <- df$content$resp_total
+
+#-----------------------------------------------
