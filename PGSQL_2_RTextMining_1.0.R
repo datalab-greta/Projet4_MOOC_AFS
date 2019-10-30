@@ -9,8 +9,8 @@ library(dbplyr)
 con <- dbConnect(RPostgres::Postgres(),dbname = 'BDD_Franck', 
                  host = '127.0.0.1', # i.e. 'ec2-54-83-201-96.compute-1.amazonaws.com'
                  port = 5432, # or any other port specified by your DBA
-                 user = 'perrot',
-                 password = '38d3a8276b39e9da87be27e148a4e2f12a695441118da269fa7b8d3c183e18e2')
+                 user = 'zemouche',
+                 password = 'password')
 print(con)
 dbListTables(con)
 
