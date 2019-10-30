@@ -2,28 +2,29 @@
 
 #############
 
+
 # Projet 4 - MOOC
 
 ## Projet : Objectif
 
-#__Des statistiques qualitatives concernant les forums de MOOC__
-
-***
-# Visualiser pour un cours :
+# __Des statistiques qualitatives concernant les forums de MOOC__
 # 
-# *- *Les contributeurs les plus actifs (pareto)
+# ***
+#   Visualiser pour un cours :
+#   
+#   *- *Les contributeurs les plus actifs (pareto)
 # *- *Répartition des messages dans le temps
 # *- *Répartition par groupes (topics)
 # *- *Comparer des cours entre eux
 # *- *Les plus actifs, les plus longs ...
-***
+# ***
   
-## Data disponible
+  ## Data disponible
   
-# __   DATA CONTENT   __
-
-***
-  
+#   __   DATA CONTENT   __
+# 
+# ***
+#   
 #   1. Introduction to Project Management 6 weeks (Anglais)
 # * course-v1:AdelaideX+Project101x+2T2016 date du 15-07-2016 au 17-03-2017
 # * Adelaide University en parternaire avec EdX
@@ -43,8 +44,9 @@
 # 5. Python 3 : des fondamentaux aux concepts avancés du langage 
 # * course = "course-v1:UCA+107001+session02" 17 sep 2018 au 06 sep 2020
 # * L'Université Côte d'Azur
+# 
+# ***
 
-***
 
 
 ### LIBRAIRIES
@@ -75,8 +77,6 @@ library(usethis)
 
 
 
-
-
 ## Connection à base des données
 
 
@@ -86,7 +86,7 @@ con <- dbConnect(RPostgres::Postgres(),dbname = 'BDD_Franck',
                  host = '127.0.0.1', # i.e. 'ec2-54-83-201-96.compute-1.amazonaws.com'
                  port = 5432, # or any other port specified by your DBA
                  user = 'perrot',
-                 password = '38d3a8276b39e9da87be27e148a4e2f12a695441118da269fa7b8d3c183e18e2')
+                 password = 'password')
 print(con)
 dbListTables(con)
 
@@ -98,15 +98,9 @@ dbListTables(con)
 dbListFields(con, "Fun_Mooc1")
 data <- dbReadTable(con, "Fun_Mooc1")
 df <- data
-```
-
-
 
 #------------------------------Write dataframe to csv---------------------------------
 write.csv(data,"/home/perrot/Documents/Projet4/working/datatest.csv", row.names = FALSE)
-
-
-
 
 #---------------------------------Trim whitespaces-----------------------------------
 
@@ -158,7 +152,6 @@ dmtype <- dcountAS %>% tidyr::separate(mtype, c("semaine", "stitre"), sep = " / 
 dfguc <- dfg1[c("username", "course_id", "date")]
 ducn <- dfguc %>% group_by(course_id) %>% add_count(username)
 
-
 #--------------------------Count data-------------------------------
 
 ccdt <- dplyr::count(dfg1, date)
@@ -176,8 +169,6 @@ cctt <- dplyr::count(df, title)
 cced <- dplyr::count(df, endorsed)
 
 #----------------------------END OF DATAFRAMES-----------------------------------------
-
-
 
 
 ## Graphs et Plots
@@ -201,11 +192,8 @@ cced <- dplyr::count(df, endorsed)
 
 
 
-
-#----------------------------------------
-
-
 ### Les contributeurs les plus actifs (pareto)
+
 
 
 dfp <- ucount
@@ -251,7 +239,7 @@ axis(side = 4, at = c(0, px), labels = paste(c(0, round(dfp$cum_freq * 100)) ,"%
 pareto <- par(def_par)
 
 
-#----------------------------------------
+
 ### Les plus actifs, les plus longs ...
 
 
@@ -262,13 +250,30 @@ gucount <- gucount %>%
 gucount$username <- factor(gucount$username, levels = gucount$username[order(-gucount$n)])
 ggplot(gucount) +
   aes(x = gucount$username, weight = n) +
-  labs(x = "username", y = "number", title = "Les utilisateurs le plus fréquent", subtitle = "tous les course") +
+  labs(x = "username", y = "nombre", title = "Les utilisateurs le plus fréquent", subtitle = "tous les course") +
   geom_bar(fill = "#26828e") +
   coord_flip()+
   scale_fill_hue() +
   theme(
   axis.text.x = element_text(angle = 45))
   theme_minimal()
+
+
+  #-------------------------------Nombre d'utilisateurs anonyme----------------------------------------------------------
+
+gucountAnon <- dplyr::count(dfg1, username, user_id, course_id, sort = TRUE)
+gucountAnon<- gucountAnon %>%
+  filter(username %in% "Anonymous")
+
+ggplot(gucountAnon) +
+ aes(x = course_id, weight = n) +
+ geom_bar(fill = "#a50f15") +
+ labs(x = "Cours", y = "Nombre d'utilisateurs anonyme", title = "Nombre d'utilisateurs 'anonyme' par cours", subtitle = "", caption = "") +
+ scale_x_discrete(labels=c("CNAM","AdelaideX","Mines Telecom","UCA"))
+ theme_minimal()
+  
+
+#--------------------------------------------------------------------------------------------
 
 
 gucountA <- dcountU
@@ -303,8 +308,7 @@ ggplot(gucountC) +
   scale_fill_hue() +
   theme_minimal() + theme(
   axis.text.x = element_text(angle = 45))
-p3 <- ggplot +  theme_minimal()
-
+  theme_minimal()
 
 
 gucountM <- dcountM
@@ -321,8 +325,7 @@ coord_flip()+
   scale_fill_hue() +
   theme_minimal() + theme(
     axis.text.x = element_text(angle = 45))
-p3 <- ggplot +  theme_minimal()
-
+theme_minimal()
 
 
 gucountS <- dcountU
@@ -339,13 +342,13 @@ ggplot(gucountS) +
   scale_fill_hue() +
   theme_minimal() + theme(
     axis.text.x = element_text(angle = 45))
-p3 <- ggplot +  theme_minimal()
+theme_minimal()
 
 
 gucountUC <- dcountUC
 gucountUC <- dplyr::count(gucountUC, username, course_id, sort= TRUE)
 gucountUC <- gucountUC %>%
-  filter(n >= 2L & n <= 26L) %>%
+  filter(n >= 3L & n <= 26L) %>%
   filter(course_id %in% "course-v1:UCA+107001+session02")
 gucountUC$username <- factor(gucountUC$username, levels = gucountUC$username[order(-gucountUC$n)])
 ggplot(gucountUC) +
@@ -356,14 +359,15 @@ ggplot(gucountUC) +
   scale_fill_hue() +
   theme_minimal() + theme(
     axis.text.x = element_text(angle = 45))
-p3 <- ggplot +  theme_minimal()
+theme_minimal()
 
 
-#----------------------------------------
 
-### Nombre des messages par period et course
 
-```{r}
+
+### ----------------------------Nombre des messages par period et course-----------------------------------
+
+
 dcountA <- dcountA %>%
   filter(course_id %in% "course-v1:AdelaideX+Project101x+2T2016")
 ggplot(dcountA) +
@@ -387,7 +391,6 @@ ggplot(dcountC) +
   theme_minimal()
 
 
-
 dcountM <- dcountM %>%
   filter(course_id %in% "course-v1:MinesTelecom+04026+session05")
 ggplot(dcountM) +
@@ -397,7 +400,6 @@ ggplot(dcountM) +
   labs(x = "Period des messages", y = "Nombre de message", title = "Nombre des messages par period et course") +
   labs(subtitle = "Mines Telecom - S'initier à la fabrication numérique - session 5 du 17 sep 2019 au 05 nov 2019") +
   theme_minimal()
-
 
 
 dcountS<- dcountS %>%
@@ -420,11 +422,12 @@ ggplot(dcountUC) +
   geom_line(size = 1L) +
   scale_color_hue() +
   labs(x = "Period des messages", y = "Nombre de message", title = "Nombre des messages par period et course") +
-  labs(subtitle = "UCA - Python 3 : des fondamentaux aux concepts avancés du langage du 17 sep 2018 au 06 sep 2020") +
+  labs(subtitle = "UCA - Python 3 : des fondamentaux aux concepts avancés du 17 sep 2018 au 06 sep 2020") +
   theme_minimal()
 
 
-#----------------------------------------
+
+
 
 
 ### Comparer des cours entre eux
@@ -447,7 +450,6 @@ ggplot(dcount) +
 #__Introduction to Project Management 6 weeks (English)  - du 15-07-2016 au 17-03-2017 - par semaine__
 
 
-
 dmtypeA <- dmtype %>%
   filter(course_id %in% "course-v1:AdelaideX+Project101x+2T2016") %>%
   
@@ -466,7 +468,6 @@ ggplot(dmtypeA) +
 #__Du manager agile au leader designer par semaine - du 03-02-2014 au 15-05-2014__
 
 
-
 dmtypeC <- dmtype %>%
   filter(course_id %in% "CNAM/01002/Trimestre_1_2014") %>%
   filter(date >= "2014-02-03" & date <= "2014-05-17")
@@ -483,7 +484,6 @@ ggplot(dmtypeC) +
 #__S'initier à la fabrication numérique par semaine - 17 sep 2019 au 05 nov 2019__
 
 
-
 dmtypeM <- dmtype %>%
   filter(course_id %in% "course-v1:MinesTelecom+04026+session05") %>%
   filter(date >= "2019-09-17" & date <= "2019-11-05")
@@ -494,7 +494,6 @@ ggplot(dmtypeM) +
   labs(x = "temp", y = "nombre des messages", title = "S'initier à la fabrication numérique par Mines Telecom", subtitle = "message par semaine et sujet", 
        caption = "", fill = "Sujet") +
   theme_minimal()
-
 
 
 
@@ -515,9 +514,7 @@ ggplot(dmtypeS) +
 
 
 
-
 #__Python 3 : des fondamentaux aux concepts avancés du langage - 09 sep 2019 au 20 oct 2019__
-
 
 
 dmtypeS <- dmtype %>%
@@ -532,11 +529,10 @@ ggplot(dmtypeS) +
   theme_minimal()
 
 
-
 ### Longueur du body du message + child
 
 
-#----------------------------------------
+
 dfex7 <- subset(dfg1, select = c(course_id, blen))
 dfex7$blen <- as.numeric(dfex7$blen)
 dfex7 <- dfex7 %>%
@@ -544,59 +540,107 @@ dfex7 <- dfex7 %>%
 
 ggplot(dfex7) +
   aes(x = blen, fill = course_id) +
-  geom_density(adjust = 1L, alpha=.5) +
+  geom_histogram(adjust = 30L, bins = 100) +
  scale_fill_viridis_d(option = "plasma") +
-  labs(x = "longueur du 'body' du message", y = "density", title = "Longueur du 'body' du message - 1 à 2000", subtitle = "", fill = "Cours id") +
+  labs(x = "longueur du 'body' du message", y = "occurences", title = "Longueur du 'body' du message - 1 à 2000", subtitle = "", fill = "Cours id") +
   theme_minimal()
 
 
 
-#----------------------------------------
-dfex7 <- subset(dfg1, select = c(course_id, blen))
-dfex7$blen <- as.numeric(dfex7$blen)
-dfex7 <- dfex7 %>%
+dfex8 <- subset(dfg1, select = c(course_id, blen))
+dfex8$blen <- as.numeric(dfex8$blen)
+dfex8 <- dfex8 %>%
   filter(blen >= 2001L & blen <= 6000L)
 
-ggplot(dfex7) +
-  aes(x = blen, fill = fct_rev(course_id)) +
-  geom_density(adjust = 1L, alpha=.5) +
+ggplot(dfex8) +
+  aes(x = blen, fill = course_id) +
+  geom_histogram(adjust = 1L, bins = 100) +
  scale_fill_viridis_d(option = "plasma") +
-  labs(x = "longueur du 'body' du message", y = "density", title = "Longueur du 'body' du message - 2001 à 6000", subtitle = "", fill = "Cours id") +
+  labs(x = "longueur du 'body' du message", y = "occurences", title = "Longueur du 'body' du message - 2001 à 6000", subtitle = "", fill = "Cours id") +
   theme_minimal()
 
 
+dfex10 <- subset(dfg1, select = c(course_id, blen))
+dfex10$blen <- as.numeric(dfex10$blen)
+dfex10 <- dfex10 %>%
+  filter(course_id %in% "course-v1:AdelaideX+Project101x+2T2016") %>%
+  filter(blen >= 1L & blen <= 8000L)
 
-
-
-#----------------------------------------
-
-dfex7 <- subset(dfg1, select = c(course_id, blen))
-dfex7$blen <- as.numeric(dfex7$blen)
-dfex7 <- dfex7 %>%
-  filter(blen >= 1L & blen <= 6000L)
-
-dentous <- ggplot(dfex7) +
-  aes(x = blen, fill = fct_rev(course_id)) +
-  geom_density(adjust = 1L,, alpha=.5) +
+ggplot(dfex10) +
+  aes(x = blen, fill = course_id) +
+  geom_density(adjust = 1L) +
  scale_fill_viridis_d(option = "plasma") +
-  labs(x = "longueur du body du message + child", y = "density", title = "Longueur du 'body' du message - 1 à 6000", subtitle = "", fill = "Cours id") +
+  labs(x = "longueur du body du message + child", y = "densité", title = "Longueur du 'body' du message", subtitle = "Introduction to Project Management - du 15-07-2016 au 17-03-2017", fill = "Cours id") +
   theme_minimal()
 
 
+dfex11 <- subset(dfg1, select = c(course_id, blen))
+dfex11$blen <- as.numeric(dfex11$blen)
+dfex11 <- dfex11 %>%
+  filter(course_id %in% "CNAM/01002/Trimestre_1_2014") %>%
+  filter(blen >= 1L & blen <= 8000L)
 
 
-#----------------------------------------
+ggplot(dfex11) +
+  aes(x = blen, fill = course_id) +
+  geom_density(adjust = 1L) +
+ scale_fill_viridis_d(option = "plasma") +
+  labs(x = "longueur du body du message + child", y = "density", title = "Longueur du 'body' du message", subtitle = "Du manager agile au leader designer - du 03-02-2014 au 15-05-2014", fill = "Cours id") +
+  theme_minimal()
+
+
+dfex12 <- subset(dfg1, select = c(course_id, blen))
+dfex12$blen <- as.numeric(dfex12$blen)
+dfex12 <- dfex12 %>%
+  filter(course_id %in% "course-v1:MinesTelecom+04026+session05") %>%
+  filter(blen >= 1L & blen <= 8000L)
+
+
+ggplot(dfex12) +
+  aes(x = blen, fill = course_id) +
+  geom_density(adjust = 1L) +
+ scale_fill_viridis_d(option = "plasma") +
+  labs(x = "longueur du body du message + child", y = "density", title = "Longueur du 'body' du message", subtitle = "S'initier à la fabrication numérique - du 17 sep 2019 au 05 nov 2019", fill = "Cours id") +
+  theme_minimal()
+
+
+dfex13 <- subset(dfg1, select = c(course_id, blen))
+dfex13$blen <- as.numeric(dfex13$blen)
+dfex13 <- dfex13 %>%
+  filter(course_id %in% "course-v1:UPSUD+42001+session12") %>%
+  filter(blen >= 1L & blen <= 8000L)
+
+ggplot(dfex13) +
+  aes(x = blen, fill = course_id) +
+  geom_density(adjust = 1L) +
+ scale_fill_viridis_d(option = "plasma") +
+  labs(x = "longueur du body du message + child", y = "density", title = "Longueur du 'body' du message", subtitle = "Introduction à la statistique avec R - du 09 sep 2019 au 20 oct 2019", fill = "Cours id") +
+  theme_minimal()
+
+
+dfex14 <- subset(dfg1, select = c(course_id, blen))
+dfex14$blen <- as.numeric(dfex14$blen)
+dfex14 <- dfex14 %>%
+  filter(course_id %in% "course-v1:UCA+107001+session02") %>%
+  filter(blen >= 1L & blen <= 8000L)
+
+ggplot(dfex14) +
+  aes(x = blen, fill = course_id) +
+  geom_density(adjust = 1L) +
+ scale_fill_viridis_d(option = "plasma") +
+  labs(x = "longueur du body du message + child", y = "density", title = "Longueur du 'body' du message", subtitle = "Python 3 : des fondamentaux aux concepts avancés - du 17 sep 2018 au 06 sep 2020", fill = "Cours id") +
+  theme_minimal()
+
+
+#---------------------------------------Nombre des messages par type de thread-------------
 
 dfthread <- dfg1 %>%
   filter(!(thread_type %in% ""))
 thtous <- ggplot(dfthread) +
   aes(x = thread_type) +  
   geom_bar(fill = "#0c4c8a") +
-labs(x = "type de thread", y = "nombre", title = "Nombre des messages par type de thread", subtitle = "") +
+  labs(x = "type de thread", y = "nombre", title = "Nombre des messages par type de thread", subtitle = "") +
   theme_minimal()
-
-
-
 
 
 
@@ -630,6 +674,7 @@ head(messages)
 #------------------------------------
 
 
+
 yearMonth <- ddply(messages, c("year", "month"), summarize, N = length(ymd))
 
 #reverse order of months for easier graphing
@@ -645,7 +690,6 @@ ggplot(yearMonth, aes(year, month)) + geom_tile(aes(fill = N),colour = "white") 
   theme_bw() + theme_minimal() 
 
 
-
 dayHour <- ddply(messages, c( "hour", "wday"), summarise, N    = length(ymd))
 
 dayHour$wday <- factor(dayHour$wday, levels=rev(levels(dayHour$wday)))
@@ -658,3 +702,6 @@ ggplot(dayHour, aes(hour, wday)) + geom_tile(aes(fill = N),colour = "white", na.
   labs(title = "Messages par heure jour et heure",
        x = "par heure", y = "par jour") +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+
+
+
