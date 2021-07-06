@@ -1,0 +1,31 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Oct  2 15:39:55 2019
+
+@author: perrot code:EMMANUEL
+"""
+
+import requests, pprint, os
+
+from pymongo import MongoClient # librairie qui va bien
+import configparser
+
+config = configparser.ConfigParser()
+config.read_file(open(os.path.expanduser("~/.datalab.cnf")))
+
+CNF = "mongo"
+BDD = "Datalab"
+
+# Ouverture connection -> mongo sur serveur
+client = MongoClient('mongodb://%s:%s@%s/?authSource=%s' % (config[CNF]['user'], config[CNF]['password'], config[CNF]['host'], BDD))
+print(client)
+
+bdd = client['Datalab'] # BDD "Datalab" de mongoDB sur serveur
+bdd
+print("'Datalab' Collections:")
+for cn in bdd.list_collection_names():
+    print("-"+cn)
+collec = client['Datalab']['MOOC_GRP_AFS']
+
+#exit()
